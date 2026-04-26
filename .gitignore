@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Local dependency sandbox used for docs generation
+.venv_vendor/
+
+# Sphinx build artifacts
+docs/build/
+docs/source/_autosummary/
