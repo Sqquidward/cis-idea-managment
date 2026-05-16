@@ -1,6 +1,9 @@
-"""Точка входа backend-модуля для документации Sphinx."""
+"""Точка входа backend-модуля для документации Sphinx и совместимости."""
 
+from app.main import app
 from voting_service import get_voting_service_status
+
+__all__ = ["app", "get_voting_service_status", "healthcheck"]
 
 
 def healthcheck() -> dict[str, str]:

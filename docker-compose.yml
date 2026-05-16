@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: cis
+      POSTGRES_PASSWORD: cis
+      POSTGRES_DB: cis_ideas
+    ports:
+      - "15432:5432"
+    volumes:
+      - cis_ideas_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cis_ideas_pgdata:
