@@ -26,26 +26,56 @@
 
 ## Запуск системы
 
-### Стек технологий
+### Требования
 
-- **Backend:** Python (FastAPI), in-memory store (демо)
+- Docker (для PostgreSQL 15)
+- Python 3.9+
+- Node.js 18+ (рекомендуется 20)
+
+### Стек
+
+- **Backend:** Python, FastAPI, SQLAlchemy, Alembic, PostgreSQL, JWT (`python-jose`)
 - **Frontend:** React (Vite), TypeScript, Tailwind CSS
 
-### Backend (порт 8000)
+### 1. База данных (PostgreSQL)
+
+Из корня репозитория:
+
+```bash
+docker compose up -d db
+```
+
+Контейнер слушает порт **15432** на хосте (см. `docker-compose.yml`), чтобы не конфликтовать с локальным PostgreSQL на 5432.
+
+Строка подключения по умолчанию:
+
+`postgresql+psycopg2://cis:cis@127.0.0.1:15432/cis_ideas`
+
+Переопределение — файл `backend/.env` (образец: `backend/.env.example`):
+
+| Переменная | Назначение |
+| :--- | :--- |
+| `DATABASE_URL` | URL подключения к PostgreSQL |
+| `JWT_SECRET_KEY` | Секрет подписи JWT (обязательно сменить в production) |
+| `JWT_EXPIRE_MINUTES` | Время жизни токена в минутах (по умолчанию 480) |
+
+### 2. Backend (порт 8000)
 
 ```bash
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-API: http://127.0.0.1:8000/docs
+- Swagger UI: http://127.0.0.1:8000/docs
+- При первом старте выполняется сид демо-данных (пользователи, идеи #101 и #102).
 
-### Frontend (порт 5173)
+Миграции схемы БД — только через Alembic (`alembic upgrade head`), не вручную.
 
-Требуется Node.js 18+ (рекомендуется 20).
+### 3. Frontend (порт 5173)
 
 ```bash
 cd frontend
@@ -53,14 +83,35 @@ npm install
 npm run dev
 ```
 
-Приложение: http://127.0.0.1:5173
+- Приложение: http://127.0.0.1:5173
+- Запросы к `/api/*` проксируются на backend через Vite (`frontend/vite.config.ts`).
 
-Запросы к `/api/*` проксируются на backend через Vite.
+### 4. Авторизация (JWT)
 
-### Учётные данные (демо)
+1. `POST /api/auth/login` с телом `{"username","password"}` — в ответе `access_token`.
+2. Остальные эндпоинты API требуют заголовок `Authorization: Bearer <access_token>`.
+3. Frontend сохраняет токен в `sessionStorage` и подставляет его автоматически.
 
-- Логин: `Admin`
-- Пароль: `12345`
+Backend stateless: сессия не хранится на сервере, только в JWT.
+
+### 5. Учётные записи (демо)
+
+| Логин | Пароль | Роль | Возможности в UI |
+| :--- | :--- | :--- | :--- |
+| `Admin` | `12345` | Сотрудник | Подача идей, голосование, план, отзывы |
+| `Committee` | `12345` | Комитет | Смена статусов идей на панели комитета |
+
+Для операций комитета (`PATCH /api/ideas/{id}/status`) нужен вход под `Committee`.
+
+### 6. Типичные проблемы
+
+| Симптом | Решение |
+| :--- | :--- |
+| Ошибка подключения к БД | Проверить `docker compose ps`, порт 15432 и `DATABASE_URL` |
+| `503` / «База данных не инициализирована» | Выполнить `alembic upgrade head`, перезапустить backend |
+| `401` на API после входа | Перелогиниться; проверить заголовок `Authorization: Bearer` |
+| `403` при смене статуса | Войти как `Committee`, не как `Admin` |
+| Порт 8000 занят | Остановить старый процесс `uvicorn` или сменить порт |
 
 ---
 
