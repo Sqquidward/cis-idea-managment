@@ -1,5 +1,24 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Idea } from "../types";
+
+const VPN_PLAN_PROJECT: Idea = {
+  id: 102,
+  title: "Внедрение нового отказоустойчивого VPN-клиента",
+  type: "Технологическая",
+  description:
+    "Замена текущего VPN-сервиса на современный клиент с поддержкой асинхронного шифрования.",
+  author: "Мухаяров В. А.",
+  status: "Реализация",
+  rating: 32,
+  voted: false,
+};
+
+function withVpnProject(projects: Idea[]): Idea[] {
+  const hasVpn = projects.some(
+    (p) => p.id === VPN_PLAN_PROJECT.id || p.title === VPN_PLAN_PROJECT.title,
+  );
+  return hasVpn ? projects : [...projects, VPN_PLAN_PROJECT];
+}
 
 const TEAM = [
   { name: "Тимошенко Д. М.", key: "taskTimoshenko", placeholder: "Укажите задачу (например, Системная аналитика и UI/UX макеты)" },
@@ -12,6 +31,7 @@ interface PlanScreenProps {
 }
 
 export function PlanScreen({ projects, onSave }: PlanScreenProps) {
+  const planProjects = useMemo(() => withVpnProject(projects), [projects]);
   const [selectedId, setSelectedId] = useState("");
   const [deadline, setDeadline] = useState("");
   const [tasks, setTasks] = useState<Record<string, string>>({});
@@ -48,7 +68,7 @@ export function PlanScreen({ projects, onSave }: PlanScreenProps) {
             className="w-full md:w-1/2 border border-gray-300 rounded-lg p-3 bg-white"
           >
             <option value="">-- Выберите проект --</option>
-            {projects.map((p) => (
+            {planProjects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title}
               </option>
@@ -101,7 +121,7 @@ export function PlanScreen({ projects, onSave }: PlanScreenProps) {
           </div>
         )}
 
-        {projects.length === 0 && (
+        {planProjects.length === 0 && (
           <p className="text-center py-6 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
             Нет доступных проектов со статусом «Реализация» для составления дорожной карты.
           </p>
