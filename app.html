@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КИС Управление идеями</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
+
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-slate-900 px-4">
+        <div class="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden p-8 border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="text-4xl inline-block p-3 bg-blue-50 rounded-full mb-3">💡</div>
+                <h2 class="text-2xl font-bold text-slate-800">КИС «Управление идеями»</h2>
+                <p class="text-sm text-gray-500 mt-1">Авторизация в корпоративной системе</p>
+            </div>
+            
+            <div id="loginError" class="hidden mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
+                Неверный логин или пароль!
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Имя пользователя (Логин)</label>
+                    <input type="text" id="username" required placeholder="Введите Admin" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+                    <input type="password" id="password" required placeholder="Введите 12345" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
+                    Войти в систему
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-gray-400">
+                Разработано студентами группы ИНБО-12-23
+            </div>
+        </div>
+    </div>
+
+    <div id="appPage" class="hidden min-h-screen flex flex-col">
+        <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="text-2xl">💡</div>
+                <h1 class="text-xl font-bold text-slate-800">КИС Управление идеями</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm font-medium text-gray-600" id="userRoleDisplay">Admin (Пользователь)</span>
+                <div id="userAvatar" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">AD</div>
+            </div>
+        </header>
+
+        <div class="p-3 flex flex-wrap justify-center gap-2 bg-slate-800 text-white shadow-inner text-sm">
+            <span class="py-2 font-bold text-yellow-400 mr-2">Панель навигации по КИС:</span>
+            <button onclick="switchTab('screen1')" id="btn-screen1" class="tab-btn px-4 py-1.5 bg-blue-600 text-white font-medium rounded transition">1. Подача идеи</button>
+            <button onclick="switchTab('screen2')" id="btn-screen2" class="tab-btn px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded transition">2. Лента и голосование</button>
+            <button onclick="switchTab('screen3')" id="btn-screen3" class="tab-btn px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded transition">3. Панель Комитета</button>
+            <button onclick="switchTab('screen4')" id="btn-screen4" class="tab-btn px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded transition">4. Календарный план</button>
+            <button onclick="switchTab('screen5')" id="btn-screen5" class="tab-btn px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded transition">5. Обратная связь</button>
+        </div>
+
+        <main class="flex-1 max-w-5xl w-full mx-auto mt-8 p-4 mb-12">
+
+            <div id="screen1" class="tab-content active">
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-8">
+                    <h2 class="text-2xl font-bold mb-2 text-gray-800">Новая инициатива</h2>
+                    <p class="text-sm text-gray-500 mb-6">Заполните форму для отправки предложения на этап сбора голосов.</p>
+                    
+                    <form onsubmit="createNewIdea(event)" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Название идеи</label>
+                                <input type="text" id="newIdeaTitle" required placeholder="Например: Автоматизация сбора заявок в IT" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Тип идеи</label>
+                                <select id="newIdeaType" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                                    <option value="Технологическая">Технологическая</option>
+                                    <option value="Организационная">Организационная</option>
+                                    <option value="Бережливое производство">Бережливое производство</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Подробное описание</label>
+                            <textarea id="newIdeaDesc" required placeholder="Опишите текущую проблему и предложенное вами инженерное/организационное решение..." class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 bg-gray-50 h-32"></textarea>
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 shadow transition duration-200">
+                            Опубликовать и запустить голосование
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="screen2" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Лента корпоративных предложений</h2>
+                <div id="ideasFeedContainer" class="space-y-6">
+                    </div>
+            </div>
+
+            <div id="screen3" class="tab-content">
+                <h2 class="text-2xl font-bold mb-2 text-gray-800">Панель модерации Комитета</h2>
+                <p class="text-sm text-gray-500 mb-6">Рассмотрение идей экспертной группой, утверждение проектов в реализацию или вынос в архив.</p>
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-xs uppercase border-b border-gray-200 font-semibold">
+                                <th class="p-4">ID</th>
+                                <th class="p-4">Название идеи</th>
+                                <th class="p-4">Автор</th>
+                                <th class="p-4">Рейтинг</th>
+                                <th class="p-4">Статус</th>
+                                <th class="p-4 text-center">Решение экспертов</th>
+                            </tr>
+                        </thead>
+                        <tbody id="committeeTableBody" class="text-gray-700 text-sm divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="screen4" class="tab-content">
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-8">
+                    <h2 class="text-2xl font-bold mb-2 text-gray-800">Дорожная карта реализации проектов</h2>
+                    <p class="text-sm text-gray-500 mb-6">Поскольку автор идеи теперь выступает и ответственным лицом, сформируйте проектную команду.</p>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Выберите утвержденный проект для планирования:</label>
+                            <select id="planProjectSelector" onchange="updatePlanView()" class="w-full md:w-1/2 border border-gray-300 rounded-lg p-3 bg-white">
+                                </select>
+                        </div>
+
+                        <div id="planFormContent" class="hidden border-t border-gray-100 pt-6">
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Плановый дедлайн внедрения:</label>
+                                <input type="date" id="planDeadline" class="w-48 border border-gray-300 rounded-lg p-2.5 bg-gray-50">
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">Распределение задач рабочей группы:</label>
+                                <div class="space-y-4">
+                                    <div class="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        <span class="font-medium text-gray-700 py-2 min-w-[150px]">Тимошенко Д. М.</span>
+                                        <input type="text" id="taskTimoshenko" placeholder="Укажите задачу (например, Системная аналитика и UI/UX макеты)" class="flex-1 border border-gray-300 rounded p-2 bg-white text-sm">
+                                    </div>
+                                    <div class="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        <span class="font-medium text-gray-700 py-2 min-w-[150px]">Мухаяров В. А.</span>
+                                        <input type="text" id="taskMukhayarov" placeholder="Укажите задачу (например, Разработка архитектуры бэкенда на FastAPI)" class="flex-1 border border-gray-300 rounded p-2 bg-white text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="saveProjectPlan()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 shadow transition">
+                                Зафиксировать дорожную карту и запустить проект
+                            </button>
+                        </div>
+                        
+                        <div id="noProjectsToPlan" class="text-center py-6 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                            Нет доступных проектов со статусом «Реализация» для составления дорожной карты.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screen5" class="tab-content">
+                <div class="max-w-xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-blue-600 p-5 text-white">
+                        <h3 class="text-lg font-bold">Модуль сбора отзывов (Feedback)</h3>
+                    </div>
+                    <div class="p-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Выберите завершенный проект для оценки:</label>
+                        <select id="feedbackProjectSelector" class="w-full border border-gray-300 rounded-lg p-3 bg-white mb-6">
+                            </select>
+
+                        <div class="mb-6 text-center">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 text-left">Оценка удовлетворенности результатом:</label>
+                            <div class="flex justify-center gap-2 text-3xl text-gray-300" id="starRatingContainer">
+                                <span onclick="setStars(1)" class="cursor-pointer star hover:text-yellow-400 transition">★</span>
+                                <span onclick="setStars(2)" class="cursor-pointer star hover:text-yellow-400 transition">★</span>
+                                <span onclick="setStars(3)" class="cursor-pointer star hover:text-yellow-400 transition">★</span>
+                                <span onclick="setStars(4)" class="cursor-pointer star hover:text-yellow-400 transition">★</span>
+                                <span onclick="setStars(5)" class="cursor-pointer star hover:text-yellow-400 transition">★</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Текст отзыва:</label>
+                            <textarea id="feedbackText" placeholder="Напишите ваше мнение об эффектах от внедрения инновации..." class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <button onclick="submitFeedbackForm()" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 shadow transition">
+                            Сохранить отзыв в базу данных
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Единое хранилище состояния системы (State)
+        let state = {
+            ideas: [
+                {
+                    id: 101,
+                    title: "Оптимизация работы столовой предприятия",
+                    type: "Организационная",
+                    description: "Внедрение мобильного терминала предварительного заказа блюд для снижения очередей в обеденные перерывы сотрудников банка.",
+                    author: "Куликова И. В.",
+                    status: "Голосование",
+                    rating: 15,
+                    voted: false
+                },
+                {
+                    id: 102,
+                    title: "Внедрение нового отказоустойчивого VPN-клиента",
+                    type: "Технологическая",
+                    description: "Замена текущего VPN-сервиса на современный клиент с поддержкой асинхронного шифрования для повышения стабильности удаленных сессий сотрудников.",
+                    author: "Мухаяров В. А.",
+                    status: "Реализация",
+                    rating: 32,
+                    voted: true
+                }
+            ],
+            currentFeedbackRating: 0
+        };
+
+        // Логика авторизации
+        function handleLogin(event) {
+            event.preventDefault();
+            const userInp = document.getElementById('username').value.trim();
+            const passInp = document.getElementById('password').value.trim();
+            const errorBlock = document.getElementById('loginError');
+
+            if (userInp === 'Admin' && passInp === '12345') {
+                errorBlock.classList.add('hidden');
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('appPage').classList.remove('hidden');
+                
+                // Инициализация отображения данных
+                refreshUI();
+            } else {
+                errorBlock.classList.remove('hidden');
+            }
+        }
+
+        // Переключение вкладок программы
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-slate-700', 'text-gray-200');
+            });
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-slate-700', 'text-gray-200');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+        }
+
+        // Добавление новой идеи
+        function createNewIdea(event) {
+            event.preventDefault();
+            const title = document.getElementById('newIdeaTitle').value.trim();
+            const type = document.getElementById('newIdeaType').value;
+            const desc = document.getElementById('newIdeaDesc').value.trim();
+
+            const nextId = state.ideas.length > 0 ? Math.max(...state.ideas.map(i => i.id)) + 1 : 101;
+
+            state.ideas.push({
+                id: nextId,
+                title: title,
+                type: type,
+                description: desc,
+                author: "Admin (Вы)",
+                status: "Голосование",
+                rating: 0,
+                voted: false
+            });
+
+            // Очистка формы и обновление списков
+            document.getElementById('newIdeaTitle').value = '';
+            document.getElementById('newIdeaDesc').value = '';
+            alert('Идея зафиксирована в системе и отправлена в общую ленту!');
+            
+            refreshUI();
+            switchTab('screen2'); // Перекидываем в ленту
+        }
+
+        // Рендеринг динамических компонентов
+        function refreshUI() {
+            renderFeed();
+            renderCommittee();
+            renderPlanSelectors();
+        }
+
+        // Генерация ленты идей и логики голосования
+        function renderFeed() {
+            const container = document.getElementById('ideasFeedContainer');
+            container.innerHTML = '';
+
+            state.ideas.forEach(idea => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-md border border-gray-200 p-6 space-y-4";
+                
+                let statusBadgeColor = "bg-yellow-100 text-yellow-800 border-yellow-200";
+                if(idea.status === 'Реализация') statusBadgeColor = "bg-blue-100 text-blue-800 border-blue-200";
+                if(idea.status === 'Реализована') statusBadgeColor = "bg-green-100 text-green-800 border-green-200";
+                if(idea.status === 'Архив') statusBadgeColor = "bg-gray-100 text-gray-800 border-gray-200";
+
+                const isVoted = idea.voted;
+                const btnClass = isVoted 
+                    ? "flex-1 bg-gray-100 text-gray-400 font-semibold py-2.5 rounded-lg cursor-not-allowed text-sm text-center"
+                    : "flex-1 bg-blue-50 text-blue-600 font-semibold py-2.5 rounded-lg hover:bg-blue-100 text-sm text-center transition";
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">${idea.title}</h3>
+                            <p class="text-xs text-gray-400 mt-1">Автор: <span class="font-medium text-gray-600">${idea.author}</span> • Категория: ${idea.type}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 border rounded-full text-xs font-bold ${statusBadgeColor}">${idea.status}</span>
+                            <span class="px-3 py-1 bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-full">Рейтинг: ${idea.rating >= 0 ? '+' + idea.rating : idea.rating}</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">${idea.description}</p>
+                    ${idea.status === 'Голосование' ? `
+                        <div class="pt-4 border-t border-gray-100 flex gap-4">
+                            <button onclick="${!isVoted ? `handleVote(${idea.id}, 1)` : ''}" class="${btnClass}">👍 За (+1)</button>
+                            <button onclick="${!isVoted ? `handleVote(${idea.id}, -1)` : ''}" class="${btnClass}">👎 Против (-1)</button>
+                        </div>
+                        ${isVoted ? `<p class="text-xs text-blue-600 italic mt-2">Ваш голос зафиксирован в PostgreSQL через API.</p>` : ''}
+                    ` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Обработка клика по голосованию
+        function handleVote(ideaId, delta) {
+            const idea = state.ideas.find(i => i.id === ideaId);
+            if (idea && !idea.voted) {
+                idea.rating += delta;
+                idea.voted = true;
+                refreshUI();
+            }
+        }
+
+        // Генерация таблицы Комитета
+        function renderCommittee() {
+            const tbody = document.getElementById('committeeTableBody');
+            tbody.innerHTML = '';
+
+            state.ideas.forEach(idea => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                
+                let actionsHtml = `<span class="text-xs text-gray-400 italic">Решение вынесено</span>`;
+                if (idea.status === 'Голосование') {
+                    actionsHtml = `
+                        <div class="flex justify-center gap-2">
+                            <button onclick="changeStatus(${idea.id}, 'Реализация')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700 transition">Утвердить</button>
+                            <button onclick="changeStatus(${idea.id}, 'Архив')" class="bg-red-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-600 transition">В архив</button>
+                        </div>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 font-mono font-bold text-gray-400">#${idea.id}</td>
+                    <td class="p-4 font-medium text-gray-900">${idea.title}</td>
+                    <td class="p-4 text-gray-500">${idea.author}</td>
+                    <td class="p-4"><span class="${idea.rating >= 0 ? 'text-green-600' : 'text-red-500'} font-bold">${idea.rating >= 0 ? '+' + idea.rating : idea.rating}</span></td>
+                    <td class="p-4"><span class="text-xs font-semibold px-2 py-0.5 rounded border bg-gray-50">${idea.status}</span></td>
+                    <td class="p-4 text-center">${actionsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Изменение статуса Комитетом
+        function changeStatus(ideaId, newStatus) {
+            const idea = state.ideas.find(i => i.id === ideaId);
+            if (idea) {
+                idea.status = newStatus;
+                refreshUI();
+            }
+        }
+
+        // Наполнение селекторов для планов и отзывов
+        function renderPlanSelectors() {
+            const planSelect = document.getElementById('planProjectSelector');
+            const feedbackSelect = document.getElementById('feedbackProjectSelector');
+            
+            planSelect.innerHTML = '<option value="">-- Выберите проект --</option>';
+            feedbackSelect.innerHTML = '<option value="">-- Выберите проект --</option>';
+
+            const continuousProjects = state.ideas.filter(i => i.status === 'Реализация');
+            const implementedProjects = state.ideas.filter(i => i.status === 'Реализована');
+
+            continuousProjects.forEach(p => {
+                planSelect.innerHTML += `<option value="${p.id}">${p.title}</option>`;
+            });
+
+            implementedProjects.forEach(p => {
+                feedbackSelect.innerHTML += `<option value="${p.id}">${p.title}</option>`;
+            });
+
+            if(continuousProjects.length > 0) {
+                document.getElementById('noProjectsToPlan').classList.add('hidden');
+            } else {
+                document.getElementById('noProjectsToPlan').classList.remove('hidden');
+                document.getElementById('planFormContent').classList.add('hidden');
+            }
+        }
+
+        // Показ полей планирования при выборе проекта
+        function updatePlanView() {
+            const select = document.getElementById('planProjectSelector');
+            const formContent = document.getElementById('planFormContent');
+            if (select.value) {
+                formContent.classList.remove('hidden');
+            } else {
+                formContent.classList.add('hidden');
+            }
+        }
+
+        // Фиксация календарного плана реализации
+        function saveProjectPlan() {
+            const select = document.getElementById('planProjectSelector');
+            const deadline = document.getElementById('planDeadline').value;
+            
+            if(!deadline) {
+                alert('Укажите плановую дату реализации!');
+                return;
+            }
+
+            const ideaId = parseInt(select.value);
+            const idea = state.ideas.find(i => i.id === ideaId);
+            if(idea) {
+                idea.status = 'Реализована'; // Переводим на финальный этап для демонстрации отзывов
+                alert('Календарный план успешно сохранен. Проект запущен в разработку и каскадно завершен!');
+                
+                // Сброс полей
+                document.getElementById('planDeadline').value = '';
+                document.getElementById('taskTimoshenko').value = '';
+                document.getElementById('taskMukhayarov').value = '';
+                
+                refreshUI();
+                switchTab('screen5'); // Переводим на шаг отзывов
+            }
+        }
+
+        // Логика управления звездами отзывов
+        function setStars(rating) {
+            state.currentFeedbackRating = rating;
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('text-yellow-400');
+                    star.classList.remove('text-gray-300');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        }
+
+        // Сохранение отзыва
+        function submitFeedbackForm() {
+            const select = document.getElementById('feedbackProjectSelector');
+            const text = document.getElementById('feedbackText').value.trim();
+
+            if(!select.value) {
+                alert('Выберите проект для оценки!');
+                return;
+            }
+            if(state.currentFeedbackRating === 0) {
+                alert('Поставьте оценку в звездах!');
+                return;
+            }
+            if(!text) {
+                alert('Напишите текст отзыва!');
+                return;
+            }
+
+            alert('Отзыв успешно добавлен в таблицу Feedbacks базы данных PostgreSQL!');
+            document.getElementById('feedbackText').value = '';
+            setStars(0);
+            refreshUI();
+            switchTab('screen2');
+        }
+    </script>
+</body>
+</html>

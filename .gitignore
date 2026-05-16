@@ -14,3 +14,9 @@ __pycache__/
 # Sphinx build artifacts
 docs/build/
 docs/source/_autosummary/
+
+# Python virtualenv
+backend/.venv/
+
+# Node
+frontend/node_modules/
