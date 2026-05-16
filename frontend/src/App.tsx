@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { api } from "./api/client";
+import { api, setAccessToken } from "./api/client";
 import { CommitteePanel } from "./components/CommitteePanel";
 import { FeedbackScreen } from "./components/FeedbackScreen";
 import { IdeaSubmitScreen } from "./components/IdeaSubmitScreen";
@@ -28,7 +28,12 @@ export default function App() {
 
   async function handleLogin(username: string, password: string) {
     const session = await api.login(username, password);
-    setUser({ username: session.username, displayName: session.display_name });
+    setAccessToken(session.access_token);
+    setUser({
+      username: session.username,
+      displayName: session.display_name,
+      role: session.role,
+    });
     await loadIdeas();
   }
 
@@ -76,7 +81,10 @@ export default function App() {
           <h1 className="text-xl font-bold text-slate-800">КИС Управление идеями</h1>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-600">{user.displayName}</span>
+          <span className="text-sm font-medium text-gray-600">
+            {user.displayName}
+            <span className="text-gray-400 ml-1">({user.role})</span>
+          </span>
           <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
             AD
           </div>

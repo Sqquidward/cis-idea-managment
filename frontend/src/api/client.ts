@@ -1,10 +1,36 @@
 import type { Idea } from "../types";
 
+const TOKEN_KEY = "cis_access_token";
+
+let accessToken: string | null = sessionStorage.getItem(TOKEN_KEY);
+
+export function setAccessToken(token: string | null) {
+  accessToken = token;
+  if (token) {
+    sessionStorage.setItem(TOKEN_KEY, token);
+  } else {
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
+}
+
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    ...options,
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(url, { ...options, headers });
+
+  if (response.status === 401) {
+    setAccessToken(null);
+  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -19,9 +45,17 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export interface LoginResult {
+  access_token: string;
+  token_type: string;
+  username: string;
+  display_name: string;
+  role: string;
+}
+
 export const api = {
   login(username: string, password: string) {
-    return request<{ username: string; display_name: string }>("/api/auth/login", {
+    return request<LoginResult>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });

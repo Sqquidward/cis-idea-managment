@@ -58,8 +58,11 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
     username: str
     display_name: str
+    role: str
 
 
 class MessageResponse(BaseModel):

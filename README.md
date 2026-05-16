@@ -2,12 +2,21 @@
 
 Система для сбора и реализации инновационных предложений сотрудников.
 
-## Стек технологий
+## Документация
 
-- **Backend:** Python (FastAPI), in-memory store (демо)
-- **Frontend:** React (Vite), TypeScript, Tailwind CSS
+- [Руководство пользователя](wiki-pages/README.md)
+- [Техническая документация для разработчиков](docs/manual/Developer_Documentation_Idea_Management.md)
 
 ## Запуск
+
+### База данных (PostgreSQL)
+
+```bash
+docker compose up -d db
+```
+
+По умолчанию: `postgresql://cis:cis@127.0.0.1:15432/cis_ideas` (порт **15432** в `docker-compose.yml`).  
+Свой URL — в `backend/.env` (см. `backend/.env.example`).
 
 ### Backend (порт 8000)
 
@@ -16,6 +25,7 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
@@ -37,14 +47,12 @@ npm run dev
 
 ### Учётные данные (демо)
 
-- Логин: `Admin`
-- Пароль: `12345`
+| Логин | Пароль | Роль |
+| :--- | :--- | :--- |
+| `Admin` | `12345` | Сотрудник — подача идей, голосование, план, отзывы |
+| `Committee` | `12345` | Комитет — решения по статусам идей |
 
-## Документация
-
-- [Руководство пользователя](wiki-pages/README.md)
-- [Техническая документация (PDF)](docs/manual/Техническая%20документация.pdf)
-- API (Sphinx): каталог `docs/`
+После входа API принимает заголовок `Authorization: Bearer <token>`.
 
 ## Команда (ИНБО-12-23)
 
@@ -52,5 +60,3 @@ npm run dev
 - Мухаяров В. А. (Developer)
 - Тимошенко Д. М. (Designer)
 - Полиэктов М. А. (Tech Writer)
-
-> Файл `app.html` в корне — устаревший монолитный прототип; актуальный UI — в `frontend/`.

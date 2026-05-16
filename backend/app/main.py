@@ -1,13 +1,26 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.database import SessionLocal
 from app.routers import auth, feedback, ideas
+from app.seed import seed_database
 from voting_service import get_voting_service_status
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    with SessionLocal() as db:
+        seed_database(db)
+    yield
+
 
 app = FastAPI(
     title="КИС «Управление идеями»",
     description="API корпоративной системы сбора и реализации инновационных предложений",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

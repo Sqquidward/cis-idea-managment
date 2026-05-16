@@ -1,18 +1,32 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
+from app.database import get_db
+from app.db_models import User
 from app.models import LoginRequest, LoginResponse
+from app.security import create_access_token, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-VALID_CREDENTIALS = {"Admin": "12345"}
-
 
 @router.post("/login", response_model=LoginResponse)
-def login(payload: LoginRequest) -> LoginResponse:
-    password = VALID_CREDENTIALS.get(payload.username.strip())
-    if password is None or password != payload.password.strip():
+def login(payload: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
+    user = db.query(User).filter(User.username == payload.username.strip()).first()
+    if user is None or not verify_password(payload.password.strip(), user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный логин или пароль!",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    return LoginResponse(username="Admin", display_name="Admin (Пользователь)")
+    token = create_access_token(
+        user_id=user.id,
+        username=user.username,
+        role=user.role,
+        display_name=user.display_name,
+    )
+    return LoginResponse(
+        access_token=token,
+        username=user.username,
+        display_name=user.display_name,
+        role=user.role,
+    )

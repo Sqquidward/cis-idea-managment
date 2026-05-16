@@ -12,6 +12,7 @@ export interface Idea {
 export interface UserSession {
   username: string;
   displayName: string;
+  role: string;
 }
 
 export type TabId = "screen1" | "screen2" | "screen3" | "screen4" | "screen5";
