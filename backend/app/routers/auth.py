@@ -26,7 +26,9 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse
     )
     return LoginResponse(
         access_token=token,
+        user_id=str(user.id),
         username=user.username,
         display_name=user.display_name,
+        avatar_emoji=user.avatar_emoji,
         role=user.role,
     )

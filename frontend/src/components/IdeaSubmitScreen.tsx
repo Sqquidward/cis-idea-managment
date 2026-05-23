@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { PageHeader } from "./ui/PageHeader";
 
 const IDEA_TYPES = ["Технологическая", "Организационная", "Бережливое производство"];
 
@@ -26,58 +27,71 @@ export function IdeaSubmitScreen({ onSubmit }: IdeaSubmitScreenProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8">
-      <h2 className="text-2xl font-bold mb-2 text-gray-800">Новая инициатива</h2>
-      <p className="text-sm text-gray-500 mb-6">
-        Заполните форму для отправки предложения на этап сбора голосов.
-      </p>
+    <section>
+      <PageHeader
+        title="Новая инициатива"
+        description="Заполните форму, чтобы отправить предложение на этап сбора голосов коллег."
+        badge="Шаг 1"
+      />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="card">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label htmlFor="idea-title" className="label-field">
+                Название идеи
+              </label>
+              <input
+                id="idea-title"
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Например: Автоматизация сбора заявок в IT"
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label htmlFor="idea-type" className="label-field">
+                Тип идеи
+              </label>
+              <select
+                id="idea-type"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="input-field"
+              >
+                {IDEA_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Название идеи</label>
-            <input
-              type="text"
+            <label htmlFor="idea-description" className="label-field">
+              Подробное описание
+            </label>
+            <textarea
+              id="idea-description"
               required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Например: Автоматизация сбора заявок в IT"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 bg-gray-50"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Опишите текущую проблему и предложенное инженерное или организационное решение…"
+              className="input-field min-h-[140px] resize-y"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Тип идеи</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 bg-gray-50"
-            >
-              {IDEA_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+
+          <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-6">
+            <button type="submit" disabled={loading} className="btn-primary">
+              {loading ? "Публикация…" : "Опубликовать и запустить голосование"}
+            </button>
+            <p className="text-xs text-slate-400">После публикации идея появится в общей ленте</p>
           </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Подробное описание</label>
-          <textarea
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Опишите текущую проблему и предложенное вами инженерное/организационное решение..."
-            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 bg-gray-50 h-32"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 shadow transition duration-200 disabled:opacity-60"
-        >
-          Опубликовать и запустить голосование
-        </button>
-      </form>
-    </div>
+        </form>
+      </div>
+    </section>
   );
 }

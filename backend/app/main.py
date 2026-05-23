@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import SessionLocal
-from app.routers import auth, feedback, ideas
+from app.routers import auth, feedback, ideas, users
 from app.seed import seed_database
 from voting_service import get_voting_service_status
 
@@ -32,6 +32,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(users.router)
 app.include_router(ideas.router)
 app.include_router(feedback.router)
 

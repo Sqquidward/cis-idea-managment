@@ -1,4 +1,12 @@
-import type { Idea } from "../types";
+import type {
+  AdminUser,
+  Feedback,
+  Idea,
+  PlanTeamMember,
+  UserCreatePayload,
+  UserProfile,
+  VoteValue,
+} from "../types";
 
 const TOKEN_KEY = "cis_access_token";
 
@@ -48,8 +56,10 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 export interface LoginResult {
   access_token: string;
   token_type: string;
+  user_id: string;
   username: string;
   display_name: string;
+  avatar_emoji: string;
   role: string;
 }
 
@@ -58,6 +68,28 @@ export const api = {
     return request<LoginResult>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
+    });
+  },
+
+  getProfile() {
+    return request<UserProfile>("/api/users/me");
+  },
+
+  updateProfile(data: { display_name?: string; avatar_emoji?: string }) {
+    return request<UserProfile>("/api/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getUsers() {
+    return request<AdminUser[]>("/api/users");
+  },
+
+  createUser(data: UserCreatePayload) {
+    return request<AdminUser>("/api/users", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   },
 
@@ -72,7 +104,7 @@ export const api = {
     });
   },
 
-  vote(ideaId: number, delta: 1 | -1) {
+  vote(ideaId: number, delta: VoteValue) {
     return request<Idea>(`/api/ideas/${ideaId}/vote`, {
       method: "POST",
       body: JSON.stringify({ delta }),
@@ -86,15 +118,19 @@ export const api = {
     });
   },
 
-  savePlan(ideaId: number, deadline: string, tasks: Record<string, string>) {
+  savePlan(ideaId: number, deadline: string, team: PlanTeamMember[]) {
     return request<Idea>(`/api/ideas/${ideaId}/plan`, {
       method: "POST",
-      body: JSON.stringify({ deadline, tasks }),
+      body: JSON.stringify({ deadline, team }),
     });
   },
 
+  getFeedbacks() {
+    return request<Feedback[]>("/api/feedbacks");
+  },
+
   submitFeedback(ideaId: number, rating: number, text: string) {
-    return request<{ message: string }>("/api/feedbacks", {
+    return request<Feedback>("/api/feedbacks", {
       method: "POST",
       body: JSON.stringify({ idea_id: ideaId, rating, text }),
     });

@@ -4,5 +4,6 @@ from enum import Enum
 
 
 class UserRole(str, Enum):
-    EMPLOYEE = "Сотрудник"
+    ADMIN = "Админ"
+    USER = "Пользователь"
     COMMITTEE = "Комитет"
