@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatedTabContent } from "./components/AnimatedTabContent";
+import { AppTabNav } from "./components/AppTabNav";
 import { api, setAccessToken } from "./api/client";
 import { CommitteePanel } from "./components/CommitteePanel";
 import { FeedbackScreen } from "./components/FeedbackScreen";
@@ -22,7 +24,6 @@ import {
 import { DEFAULT_AVATAR_EMOJI } from "./lib/avatars";
 import type { Idea, PlanTeamMember, TabId, UserProfile, UserSession, VoteValue } from "./types";
 import { canAccessTab, canVote, getDefaultTab, getRoleSubtitle, isAdmin } from "./lib/roles";
-import { cn } from "./lib/utils";
 
 const ALL_TABS: {
   id: TabId;
@@ -41,12 +42,26 @@ const ALL_TABS: {
 export default function App() {
   const [user, setUser] = useState<UserSession | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("screen1");
+  const [tabDirection, setTabDirection] = useState<"left" | "right">("right");
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const tabIndexRef = useRef(0);
 
   const visibleTabs = useMemo(() => {
     if (!user) return ALL_TABS;
     return ALL_TABS.filter((tab) => canAccessTab(user.role, tab.id));
   }, [user]);
+
+  const selectTab = useCallback(
+    (id: TabId) => {
+      const nextIndex = visibleTabs.findIndex((t) => t.id === id);
+      if (nextIndex >= 0 && nextIndex !== tabIndexRef.current) {
+        setTabDirection(nextIndex > tabIndexRef.current ? "right" : "left");
+        tabIndexRef.current = nextIndex;
+      }
+      setActiveTab(id);
+    },
+    [visibleTabs],
+  );
 
   const loadIdeas = useCallback(async () => {
     const data = await api.getIdeas();
@@ -56,9 +71,12 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     if (!canAccessTab(user.role, activeTab)) {
-      setActiveTab(getDefaultTab(user.role));
+      const defaultTab = getDefaultTab(user.role);
+      const idx = visibleTabs.findIndex((t) => t.id === defaultTab);
+      tabIndexRef.current = idx >= 0 ? idx : 0;
+      setActiveTab(defaultTab);
     }
-  }, [user, activeTab]);
+  }, [user, activeTab, visibleTabs]);
 
   async function handleLogin(username: string, password: string) {
     const session = await api.login(username, password);
@@ -71,7 +89,11 @@ export default function App() {
       role: session.role,
     };
     setUser(sessionUser);
-    setActiveTab(getDefaultTab(session.role));
+    const defaultTab = getDefaultTab(session.role);
+    const tabsForRole = ALL_TABS.filter((tab) => canAccessTab(session.role, tab.id));
+    const idx = tabsForRole.findIndex((t) => t.id === defaultTab);
+    tabIndexRef.current = idx >= 0 ? idx : 0;
+    setActiveTab(defaultTab);
     await loadIdeas();
   }
 
@@ -97,7 +119,7 @@ export default function App() {
   async function handleCreateIdea(data: { title: string; type: string; description: string }) {
     await api.createIdea(data);
     await loadIdeas();
-    setActiveTab("screen6");
+    selectTab("screen6");
   }
 
   async function handleVote(ideaId: number, value: VoteValue) {
@@ -113,7 +135,7 @@ export default function App() {
   async function handleSavePlan(ideaId: number, deadline: string, team: PlanTeamMember[]) {
     await api.savePlan(ideaId, deadline, team);
     await loadIdeas();
-    setActiveTab("screen5");
+    selectTab("screen5");
   }
 
   if (!user) {
@@ -162,69 +184,39 @@ export default function App() {
               myIdeasCount={myIdeas.length}
               ideasCount={ideas.length}
               votingCount={votingCount}
-              onNavigate={setActiveTab}
+              onNavigate={selectTab}
               onProfileUpdate={handleProfileUpdate}
               onLogout={handleLogout}
             />
           </div>
         </div>
 
-        <nav
-          className="mx-auto max-w-6xl border-t border-slate-100 px-2 pb-0 sm:px-4"
-          aria-label="Разделы системы"
-        >
-          <div className="flex gap-1 overflow-x-auto py-2">
-            {visibleTabs.map((tab, index) => {
-              const Icon = tab.icon;
-              const active = activeTab === tab.id;
-              const step = String(index + 1);
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition",
-                    active
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-bold",
-                      active ? "bg-indigo-500 text-white" : "bg-slate-200 text-slate-600",
-                    )}
-                  >
-                    {step}
-                  </span>
-                  <Icon
-                    className={cn("hidden h-4 w-4 sm:block", active ? "text-white" : "text-slate-400")}
-                  />
-                  <span className="whitespace-nowrap">{tab.label}</span>
-                </button>
-              );
-            })}
+        <nav className="mx-auto max-w-6xl border-t border-slate-100 px-2 pb-2 pt-1 sm:px-4">
+          <div className="rounded-xl bg-slate-100/90 p-1 ring-1 ring-slate-200/60">
+            <AppTabNav tabs={visibleTabs} activeId={activeTab} onChange={selectTab} />
           </div>
         </nav>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mb-6 rounded-xl border border-indigo-100 bg-white px-5 py-4 shadow-sm">
+        <div
+          key={activeTab}
+          className="mb-6 animate-slide-up rounded-xl border border-indigo-100 bg-white px-5 py-4 shadow-sm"
+        >
           <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
             Раздел {currentTabIndex + 1} из {visibleTabs.length}
           </p>
           <h1 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">{currentTab.label}</h1>
         </div>
 
-        <div key={activeTab} className="animate-fade-in">
+        <AnimatedTabContent tabKey={activeTab} direction={tabDirection}>
           {activeTab === "screen1" && <IdeaSubmitScreen onSubmit={handleCreateIdea} />}
           {activeTab === "screen6" && (
             <MyIdeasScreen
               ideas={myIdeas}
-              onGoToFeed={() => setActiveTab("screen2")}
-              onGoToPlan={() => setActiveTab("screen4")}
-              onGoToFeedback={() => setActiveTab("screen5")}
+              onGoToFeed={() => selectTab("screen2")}
+              onGoToPlan={() => selectTab("screen4")}
+              onGoToFeedback={() => selectTab("screen5")}
             />
           )}
           {activeTab === "screen2" && (
@@ -244,7 +236,7 @@ export default function App() {
           {activeTab === "screen5" && (
             <FeedbackScreen projects={doneProjects} currentUserId={user.userId} />
           )}
-        </div>
+        </AnimatedTabContent>
       </main>
     </div>
   );

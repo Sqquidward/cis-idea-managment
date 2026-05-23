@@ -1,43 +1,89 @@
-import { useState } from "react";
+import { useState, type FC } from "react";
 import type { VoteValue } from "../types";
 import { cn } from "../lib/utils";
 
-const VOTE_OPTIONS: {
+type VoteOption = {
   value: VoteValue;
   label: string;
-  shortLabel: string;
-  hint: string;
-  active: string;
-  idle: string;
-}[] = [
+  delta: string;
+  icon: FC<{ className?: string }>;
+  cardIdle: string;
+  cardHover: string;
+  cardActive: string;
+  iconIdle: string;
+  iconActive: string;
+};
+
+function IconThumbUp({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.633 10.25c.806 0 1.533-.304 2.08-.803l3.7-3.438 2.001 1.95c.698.68.698 1.78 0 2.46l-5.52 5.39c-.698.68-1.83.68-2.528 0l-2.47-2.41a2.25 2.25 0 010-3.18l.88-.86M12.75 4.5l.879.86a2.25 2.25 0 010 3.18l-.88.86"
+      />
+    </svg>
+  );
+}
+
+function IconThumbDown({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7.498 19.502h7.096m-7.096 0a2.252 2.252 0 01-2.25-2.25V9.412a2.252 2.252 0 012.25-2.25h7.096m-7.096 0H4.875a1.125 1.125 0 00-1.125 1.125v6.77a1.125 1.125 0 001.125 1.125h2.623m7.096-9.77V6.412a2.252 2.252 0 00-2.25-2.25H9.748m7.096 9.77H18.75a1.125 1.125 0 001.125-1.125v-6.77a1.125 1.125 0 00-1.125-1.125h-2.623"
+      />
+    </svg>
+  );
+}
+
+function IconMinus({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+    </svg>
+  );
+}
+
+const VOTE_OPTIONS: VoteOption[] = [
   {
     value: 1,
-    label: "За",
-    shortLabel: "За",
-    hint: "+1 к рейтингу",
-    active: "bg-emerald-600 text-white shadow-sm",
-    idle: "text-emerald-800 hover:bg-emerald-50",
+    label: "Поддержать",
+    delta: "+1",
+    icon: IconThumbUp,
+    cardIdle: "border-emerald-200/80 bg-white",
+    cardHover: "hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md hover:shadow-emerald-100/50",
+    cardActive: "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200",
+    iconIdle: "bg-emerald-100 text-emerald-600",
+    iconActive: "bg-emerald-600 text-white",
   },
   {
     value: 0,
     label: "Воздержаться",
-    shortLabel: "Воздерж.",
-    hint: "без изменений",
-    active: "bg-slate-600 text-white shadow-sm",
-    idle: "text-slate-700 hover:bg-slate-100",
+    delta: "0",
+    icon: IconMinus,
+    cardIdle: "border-slate-200 bg-white",
+    cardHover: "hover:border-slate-400 hover:bg-slate-50 hover:shadow-md hover:shadow-slate-200/60",
+    cardActive: "border-slate-500 bg-slate-50 ring-2 ring-slate-200",
+    iconIdle: "bg-slate-100 text-slate-600",
+    iconActive: "bg-slate-600 text-white",
   },
   {
     value: -1,
-    label: "Против",
-    shortLabel: "Против",
-    hint: "−1 к рейтингу",
-    active: "bg-rose-600 text-white shadow-sm",
-    idle: "text-rose-800 hover:bg-rose-50",
+    label: "Не поддерживать",
+    delta: "−1",
+    icon: IconThumbDown,
+    cardIdle: "border-rose-200/80 bg-white",
+    cardHover: "hover:border-rose-400 hover:bg-rose-50 hover:shadow-md hover:shadow-rose-100/50",
+    cardActive: "border-rose-500 bg-rose-50 ring-2 ring-rose-200",
+    iconIdle: "bg-rose-100 text-rose-600",
+    iconActive: "bg-rose-600 text-white",
   },
 ];
 
-function voteLabel(value: VoteValue): string {
-  return VOTE_OPTIONS.find((o) => o.value === value)?.label ?? "";
+function getOption(value: VoteValue): VoteOption {
+  return VOTE_OPTIONS.find((o) => o.value === value) ?? VOTE_OPTIONS[1];
 }
 
 interface IdeaVotePanelProps {
@@ -50,9 +96,10 @@ interface IdeaVotePanelProps {
 
 export function IdeaVotePanel({ ideaId, voted, myVote, canVote, onVote }: IdeaVotePanelProps) {
   const [submitting, setSubmitting] = useState(false);
+  const [hovered, setHovered] = useState<VoteValue | null>(null);
 
   async function handleVote(value: VoteValue) {
-    if (!canVote || submitting) return;
+    if (!canVote || submitting || voted) return;
     setSubmitting(true);
     try {
       await onVote(ideaId, value);
@@ -61,58 +108,117 @@ export function IdeaVotePanel({ ideaId, voted, myVote, canVote, onVote }: IdeaVo
     }
   }
 
+  if (voted && myVote != null) {
+    const chosen = getOption(myVote);
+    const Icon = chosen.icon;
+    return (
+      <div
+        className={cn(
+          "mt-5 flex items-center gap-4 rounded-xl border px-4 py-3.5",
+          myVote === 1 && "border-emerald-200 bg-emerald-50/80",
+          myVote === 0 && "border-slate-200 bg-slate-50/80",
+          myVote === -1 && "border-rose-200 bg-rose-50/80",
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+            chosen.iconActive,
+          )}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-900">
+            Вы проголосовали: {chosen.label}
+          </p>
+          <p className="text-xs text-slate-500">
+            Рейтинг идеи {chosen.delta === "0" ? "не изменился" : `изменён на ${chosen.delta}`}
+          </p>
+        </div>
+        <span
+          className={cn(
+            "ml-auto shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums",
+            myVote === 1 && "bg-emerald-600 text-white",
+            myVote === 0 && "bg-slate-500 text-white",
+            myVote === -1 && "bg-rose-600 text-white",
+          )}
+        >
+          {chosen.delta}
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-5 rounded-xl border border-slate-200/80 bg-gradient-to-b from-slate-50 to-white p-4">
+    <div className="mt-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-slate-800">
-          {voted ? "Ваш голос учтён" : "Как вы оцениваете инициативу?"}
-        </p>
-        {submitting && <span className="text-xs text-slate-400 animate-pulse">Сохранение…</span>}
+        <p className="text-sm font-medium text-slate-700">Ваше мнение по инициативе</p>
+        {submitting && (
+          <span className="text-xs font-medium text-indigo-600 animate-pulse">Отправка…</span>
+        )}
       </div>
 
       <div
-        className="grid grid-cols-3 gap-1 rounded-lg bg-slate-200/60 p-1"
+        className="flex flex-col gap-2 sm:flex-row sm:gap-3"
         role="group"
         aria-label="Варианты голосования"
       >
         {VOTE_OPTIONS.map((option) => {
-          const isSelected = voted && myVote === option.value;
-          const disabled = !canVote || submitting || voted;
+          const disabled = !canVote || submitting;
+          const isHovered = hovered === option.value;
+          const Icon = option.icon;
 
           return (
             <button
               key={option.value}
               type="button"
               disabled={disabled}
-              title={option.hint}
               onClick={() => handleVote(option.value)}
+              onMouseEnter={() => setHovered(option.value)}
+              onMouseLeave={() => setHovered(null)}
               className={cn(
-                "rounded-md px-2 py-2.5 text-center transition-all duration-200",
-                disabled && !isSelected && "cursor-not-allowed opacity-40",
-                isSelected ? option.active : cn("bg-white", option.idle),
-                canVote && !submitting && !voted && "hover:shadow-sm",
+                "group relative flex flex-1 items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all duration-200",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
+                option.cardIdle,
+                !disabled && option.cardHover,
+                disabled && "cursor-not-allowed opacity-50",
+                isHovered && !disabled && "scale-[1.02]",
               )}
             >
-              <span className="block text-sm font-semibold sm:hidden">{option.shortLabel}</span>
-              <span className="hidden text-sm font-semibold sm:block">{option.label}</span>
-              <span
+              <div
                 className={cn(
-                  "mt-0.5 block text-[10px] leading-tight sm:text-xs",
-                  isSelected ? "text-white/75" : "text-slate-400",
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
+                  isHovered && !disabled ? option.iconActive : option.iconIdle,
                 )}
               >
-                {option.hint}
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-slate-900">{option.label}</span>
+                <span className="block text-xs text-slate-500">
+                  {option.value === 1 && "Повысить рейтинг"}
+                  {option.value === 0 && "Без влияния на рейтинг"}
+                  {option.value === -1 && "Понизить рейтинг"}
+                </span>
+              </div>
+              <span
+                className={cn(
+                  "shrink-0 rounded-lg px-2 py-1 text-xs font-bold tabular-nums transition-colors",
+                  option.value === 1 && "bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white",
+                  option.value === 0 && "bg-slate-100 text-slate-600 group-hover:bg-slate-600 group-hover:text-white",
+                  option.value === -1 && "bg-rose-100 text-rose-700 group-hover:bg-rose-600 group-hover:text-white",
+                  isHovered && !disabled && option.value === 1 && "bg-emerald-600 text-white",
+                  isHovered && !disabled && option.value === 0 && "bg-slate-600 text-white",
+                  isHovered && !disabled && option.value === -1 && "bg-rose-600 text-white",
+                )}
+              >
+                {option.delta}
               </span>
             </button>
           );
         })}
       </div>
-
-      {voted && myVote != null && (
-        <p className="mt-3 text-center text-xs text-slate-500">
-          Вы проголосовали: <span className="font-semibold text-indigo-600">{voteLabel(myVote)}</span>
-        </p>
-      )}
     </div>
   );
 }

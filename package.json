@@ -1,0 +1,26 @@
+{
+  "name": "cis-idea-management",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "pretest:e2e": "node scripts/check-node-version.mjs",
+    "pretest:e2e:watch": "node scripts/check-node-version.mjs",
+    "pretest:e2e:ui": "node scripts/check-node-version.mjs",
+    "pretest:e2e:headed": "node scripts/check-node-version.mjs",
+    "pretest:e2e:debug": "node scripts/check-node-version.mjs",
+    "pretest:e2e:cycle": "node scripts/check-node-version.mjs",
+    "preplaywright:install": "node scripts/check-node-version.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:watch": "HEADLESS=false SLOW_MO=500 playwright test --grep @tour",
+    "test:e2e:cycle": "HEADLESS=false SLOW_MO=300 playwright test --grep @lifecycle",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "HEADLESS=false playwright test",
+    "test:e2e:debug": "HEADLESS=false playwright test --grep @tour --debug",
+    "playwright:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}
